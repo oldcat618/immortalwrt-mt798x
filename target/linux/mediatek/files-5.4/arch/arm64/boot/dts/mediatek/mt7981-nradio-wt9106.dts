@@ -1,0 +1,262 @@
+//CopyRight NRadio C8-600 Update By Oldcat
+
+/dts-v1/;
+#include "mt7981.dtsi"
+
+/ {
+	model = "NRadio C8-600";
+	compatible = "nradio,wt9106", "mediatek,mt7981";
+
+	aliases {
+		led-boot = &status_blue;
+		led-failsafe = &status_blue;
+		led-running = &status_blue;
+		led-upgrade = &status_blue;
+	};
+
+	chosen {
+		bootargs = "console=ttyS0,115200n1 loglevel=8  \
+				earlycon=uart8250,mmio32,0x11002000";
+	};
+
+	gpio-export {
+		compatible = "gpio-export";
+
+		cpepower {
+			gpio-export,name = "cpe-pwr";
+			gpio-export,output = <0>;
+			gpios = <&pio 25 GPIO_ACTIVE_LOW>;
+		};
+
+		cpesel0 {
+			gpio-export,name = "cpe-sel0";
+			gpio-export,output = <1>;
+			gpios = <&pio 24 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		button-reset {
+			label = "reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&pio 1 GPIO_ACTIVE_LOW>;
+		};
+		
+		button-wps {
+			label = "wps";
+			linux,code = <KEY_WPS_BUTTON>;
+			gpios = <&pio 9 GPIO_ACTIVE_HIGH>;
+  		};
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		status_blue: status {
+			label = "hc:blue:status";
+			gpios = <&pio 10 GPIO_ACTIVE_LOW>;
+		};
+
+		cmode5 {
+			label = "hc:blue:cmode5";
+			gpios = <&pio 11 GPIO_ACTIVE_LOW>;
+		};
+
+		cmode4 {
+			label = "hc:blue:cmode4";
+			gpios = <&pio 12 GPIO_ACTIVE_LOW>;
+		};
+
+		wifi {
+			label = "hc:blue:wifi";
+			gpios = <&pio 13 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+&spi1 {
+	pinctrl-names = "default";
+	/* pin shared with snfi */
+	pinctrl-0 = <&spic_pins>;
+	status = "disabled";
+};
+
+&spi2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi2_flash_pins>;
+	status = "okay";
+	spi_nor@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <500000>;
+
+		partition@00000 {
+			label = "BL2";
+			reg = <0x00000 0x0040000>;
+		};
+		partition@40000 {
+			label = "kpanic";
+			reg = <0x40000 0x0010000>;
+		};
+		factory: partition@50000 {
+			label = "Factory";
+			reg = <0x50000 0x008000>;
+		};
+		partition@58000 {
+				label = "bdinfo";
+				reg = <0x58000 0x8000>;
+			};
+		partition@60000 {
+			label = "FIP";
+			reg = <0x60000 0x0080000>;
+		};
+		partition@E0000 {
+			label = "firmware";
+			reg = <0xE0000 0xf20000>;
+		};
+	};
+};
+
+&pcie {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie_pins>;
+	status = "okay";
+};
+
+&pio {
+	pcie_pins: pcie-pins {
+		mux {
+			function = "pcie";
+			groups = "pcie_pereset", "pcie_clk", "pcie_wake";
+		};
+	};
+
+	spic_pins: spi1-pins {
+		mux {
+			function = "spi";
+			groups = "spi1_1";
+		};
+	};
+
+	spi2_flash_pins: spi2-pins {
+		mux {
+			function = "spi";
+			groups = "spi2", "spi2_wp_hold";
+		};
+	};
+};
+
+&eth {
+        status = "okay";
+
+        gmac0: mac@0 {
+                compatible = "mediatek,eth-mac";
+                reg = <0>;
+                phy-mode = "2500base-x";
+
+                fixed-link {
+                        speed = <2500>;
+                        full-duplex;
+                        pause;
+                };
+        }; 
+
+		gmac1: mac@1 {
+		compatible = "mediatek,eth-mac";
+		reg = <1>;
+		phy-mode = "2500base-x";
+
+		fixed-link {
+			speed = <2500>;
+			full-duplex;
+			pause;
+		};
+	};
+
+	mdio: mdio-bus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		phy0: phy@0 {
+			// compatible = "ethernet-phy-ieee802.3-c45";
+			compatible = "ethernet-phy-id03a2.9461";
+			reg = <0>;
+			reset-gpios = <&pio 7 1>;
+			reset-assert-us = <600>;
+			reset-deassert-us = <20000>;
+			phy-mode = "2500base-x";
+		};
+
+		switch@0 {
+			compatible = "mediatek,mt7531";
+			reg = <31>;
+			reset-gpios = <&pio 39 0>;
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+                    reg = <0>;
+              		label = "lan1";
+	            };
+
+				port@1 {
+					reg = <1>;
+					label = "lan2";
+				};
+
+				port@2 {
+					reg = <2>;
+					label = "lan3";
+				};
+
+				port@3 {
+					reg = <3>;
+					label = "lan4";
+				};
+
+				port@4 {
+					reg = <4>;
+					label = "lan5";
+				};
+
+				port@6 {
+					reg = <6>;
+					label = "cpu";
+					ethernet = <&gmac0>;
+					phy-mode = "2500base-x";
+
+					fixed-link {
+						speed = <2500>;
+						full-duplex;
+						pause;
+					};
+				};
+			};
+		};
+	};
+};
+
+&xhci {
+	status = "okay";
+}; 
+
+&hnat {
+	mtketh-wan = "eth1";
+	mtketh-lan = "lan";
+	mtketh-max-gmac = <2>;
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&watchdog {
+	status = "okay";
+};
