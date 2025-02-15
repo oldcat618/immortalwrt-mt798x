@@ -65,6 +65,7 @@ ramips_setup_interfaces()
 	netgear,wac104)
 		ucidef_set_interface_lan "lan1 lan2 lan3 lan4"
 		;;
+	hc,wt6958|\
 	mikrotik,routerboard-750gr3)
 		ucidef_set_interfaces_lan_wan "lan2 lan3 lan4 lan5" "wan"
 		;;
