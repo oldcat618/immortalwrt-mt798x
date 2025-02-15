@@ -619,6 +619,15 @@ define Device/gnubee_gb-pc2
 endef
 TARGET_DEVICES += gnubee_gb-pc2
 
+define Device/hc_wt6958
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 15488k
+  DEVICE_VENDOR := HC
+  DEVICE_MODEL := WT6958
+  DEVICE_PACKAGES := kmod-mt7915e uboot-envtools kmod-usb3
+endef
+TARGET_DEVICES += hc_wt6958
+
 define Device/h3c_tx180x
   $(Device/dsa-migration)
   BLOCKSIZE := 128k
