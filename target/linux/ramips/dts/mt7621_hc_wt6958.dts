@@ -1,0 +1,187 @@
+#include "mt7621.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/ {
+	#address-cells = <0x01>;
+	#size-cells = <0x01>;
+	compatible = "hc,wt6958", "mediatek,mt7621-soc";
+	model = "HC-WT6958";
+
+	aliases {
+		led-boot = &led_status;
+		led-failsafe = &led_status;
+		led-running = &led_status;
+		led-upgrade = &led_status;
+	};
+
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_status: status {
+			label = "hc:blue:status";
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+		};
+
+		cmode5 {
+			label = "hc:blue:cmode5";
+			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
+		};
+
+		wifi {
+			label = "hc:blue:wifi";
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+		};
+		cmode4 {
+			label = "hc:blue:cmode4";
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+		};
+
+
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		wps {
+			label = "wps";
+			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+	};
+};
+
+	gpio_export {
+		compatible = "gpio-export";
+		#size-cells = <0>;
+
+		cpepower {
+			gpio-export,name = "cpe-pwr";
+			gpio-export,output = <0>;
+			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+		};
+
+		cpesel0 {
+			gpio-export,name = "cpe-sel0";
+			gpio-export,output = <1>;
+			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
+		};
+
+	};
+};
+
+&spi0 {
+	status = "okay";
+
+		flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+		broken-flash-reset;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;
+			};
+
+			partition@30000 {
+				label = "kpanic";
+				reg = <0x30000 0x10000>;
+			};
+
+			factory: partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;
+			};
+
+			partition@50000 {
+				compatible = "denx,uimage";
+				label = "firmware";
+				reg = <0x50000 0x1f90000>;
+			};
+
+			partition@1b00000 {
+				label = "bdinfo";
+				reg = <0x1fe0000 0x10000>;
+			};
+
+			partition@1f00000 {
+				label = "reserve";
+				reg = <0x1ff0000 0x10000>;
+			};
+		};
+	};
+};
+
+&switch0 {
+	ports {
+		port@1 {
+			status = "okay";
+			label = "wan";
+		};
+
+		port@2 {
+			status = "okay";
+			label = "lan2";
+		};
+
+		port@3 {
+			status = "okay";
+			label = "lan3";
+		};
+
+		port@4 {
+			status = "okay";
+			label = "lan4";
+		};
+	};
+};
+
+&xhci {
+	status = "okay";
+};
+
+&pcie {
+	status = "okay";
+};
+
+&pcie1 {
+	wifi@0,0 {
+		compatible = "mediatek,mt76";
+		reg = <0x0000 0 0 0 0>;
+		mediatek,mtd-eeprom = <&factory 0x0>;
+		mediatek,disable-radar-background;
+		mtd-mac-address = <&factory 0x4>;
+
+	};
+};
+
+&pcie2 {
+		status = "okay";
+};
+
+&uartlite {
+	status = "okay";
+};
+				
+&state_default {
+	gpio {
+		groups = "uart2", "uart3", "wdt";
+		function = "gpio";
+	};
+};
