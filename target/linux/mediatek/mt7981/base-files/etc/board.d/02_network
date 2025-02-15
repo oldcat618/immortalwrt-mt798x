@@ -94,6 +94,7 @@ mediatek_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"2:lan" "3:lan" "4:lan" "0:wan" "6u@eth0" "5u@eth1"
 		;;
+	nradio,wt9106 |\
 	nradio,wt9103)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
 		;;
@@ -237,6 +238,7 @@ mediatek_setup_macs()
 			mtk_facrory_write_mac Factory 4 "$wifi_mac"
 		fi
 		;;
+	nradio,wt9106 |\
 	nradio,wt9103)
 		lan_mac=$(mtd_get_mac_ascii bdinfo "fac_mac ")
 		label_mac=$lan_mac
